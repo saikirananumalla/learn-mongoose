@@ -1,6 +1,6 @@
-import mongoose, { Schema, Document, Model, FilterQuery } from 'mongoose';
-import Author, { IAuthor } from './author';
-import Genre, { IGenre } from './genre';
+import mongoose, {Document, FilterQuery, Model, Schema} from 'mongoose';
+import Author, {IAuthor} from './author';
+import Genre, {IGenre} from './genre';
 
 /**
  * A type that represents a book document in the books collection.
@@ -31,11 +31,13 @@ export interface IBook extends Document {
  * @interface
  * @extends Model
  * @property {Function} getAllBooksWithAuthors - A function to get all books with authors.
+ * @property {Function} getBook - A function to get a book by its id.
  * @property {Function} getBookCount - A function to get the count of books.
  */
 interface IBookModel extends Model<IBook> {
   getAllBooksWithAuthors(projectionOpts: string, sortOpts?: { [key: string]: 1 | -1 }): Promise<IBook[]>;
   getBookCount(fitler?: FilterQuery<IBook>): Promise<number>;
+  getBook(id: string): Promise<IBook | null>;
 }
 
 /**
@@ -81,6 +83,15 @@ BookSchema.statics.getAllBooksWithAuthors = async function (projection: string, 
  */
 BookSchema.statics.getBookCount = async function (filter?: FilterQuery<IBook>): Promise<number> {
   return this.countDocuments(filter || {});
+}
+
+/**
+ * Retrieve a book by its ID.
+ * @param id book id
+ * @returns a promise of the book
+ */
+BookSchema.statics.getBook = async function (id: string): Promise<IBook | null> {
+  return this.findById(id).populate('author').populate('genre').exec();
 }
 
 /**
